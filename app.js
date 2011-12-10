@@ -1,30 +1,21 @@
-
-/**
- * Module dependencies.
- */
-
 var express = require('express')
   , mongoose = require('mongoose');
 
-mongoose.connect('mongodb://localhost/todo');
 var Schema = mongoose.Schema;
 var ObjectId = Schema.ObjectId;
 
-function validatePresenceOf(value) {
-  return value && value.length;
-}
-
 var Task = new Schema({
-  task : { type: String, validate: [validatePresenceOf, 'a task is required'] },
-  created_at : Date,
+  task : { 
+    type: String, 
+    required: true,
+  },
+  created_at: { type: Date, default: Date.now },
   updated_at : Date
 });
 
 var Task = mongoose.model('Task', Task);
 
 var app = module.exports = express.createServer();
-
-// Configuration
 
 app.configure(function(){
   app.use(express.bodyParser());
@@ -34,76 +25,61 @@ app.configure(function(){
 
 app.configure('development', function(){
   app.use(express.errorHandler({ dumpExceptions: true, showStack: true })); 
+  mongoose.connect('mongodb://localhost/todo_development');
+});
+
+app.configure('test', function() {
+  app.use(express.errorHandler({ dumpExceptions: true, showStack: true }));
+  mongoose.connect('mongodb://localhost/todo_test');
 });
 
 app.configure('production', function(){
   app.use(express.errorHandler()); 
+  mongoose.connect('mongodb://localhost/todo_production');
 });
 
-// Routes
 app.get('/api/v1/tasks', function(req, res, next){
   Task.find({}, function (err, docs) {
     res.send(docs);
   });
 });
 
-// Create
 app.post('/api/v1/tasks', function(req, res){
   var doc = new Task(req.body.task);
-  doc.created_at = new Date();
-  // TODO validation
   doc.save(function (err) {
-    if (!err) {
-      res.send(doc)
-    }
-    else {
-      res.send(err)
-    }
+    err ? res.send(err, 422) : res.send(doc);
   });
 });
 
-// Read
 app.get('/api/v1/tasks/:id', function(req, res){
   Task.findById(req.params.id, function (err, doc){
-    if (doc) {
-      if (!err){
-        res.send(doc)
-      }
-      else {
-        // error handling
-      }
-    }
-    else {
-      res.send(404)
-    }
+    !doc ? res.send(404) : res.send(doc)
   });
 });
 
-// Update
 app.put('/api/v1/tasks/:id', function(req, res){
   Task.findById(req.params.id, function (err, doc){
-    // TODO handle no record found
-    doc.updated_at = new Date();
-    doc.task = req.body.task.task;
-    doc.save(function(err) {
-      if (!err){
-        res.send(200)
-      }
-      else {
-        // error handling
-      }
-    });
+    if (!doc) {
+      res.send(404)
+    } else {
+      doc.updated_at = new Date();
+      doc.task = req.body.task.task;
+      doc.save(function (err) {
+        err ? res.send(err, 422) : res.send(doc);
+      });
+    }
   });
 });
 
-// Delete
 app.del('/api/v1/tasks/:id', function(req, res){
-  Task.findOne({ _id: req.params.id }, function(err, doc) {
-    // TODO handle no record found
-    if (!doc) return next(new NotFound('Document not found'));
-    doc.remove(function() {
-      res.send(200)
-    });
+  Task.findById(req.params.id, function (err, doc){
+    if (!doc) {
+      res.send(404)
+    } else {
+      doc.remove(function() {
+        res.send(200)
+      });
+    }
   });
 });
 
