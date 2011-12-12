@@ -109,4 +109,16 @@ describe('api v1', function(){
       })
     })
   })
+
+  describe('PUT /api/v1/tasks/:id', function(){
+    describe('with valid data', function(){
+      it('should return at 200 response code')
+    })
+  })
+
+  describe('DELETE /api/v1/tasks/:id', function(){
+    describe('with valid data', function(){
+      it('should return at 200 response code')
+    })
+  })
 })
