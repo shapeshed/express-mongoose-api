@@ -107,6 +107,17 @@ describe('api v1', function(){
           done();
         })
       })
+      it('should return the task in the JSON object', function(done){
+        http.get({ path: '/api/v1/tasks/' + doc.id, port: 3000 }, function(res){
+          res.on('data', function (data) {
+            var json = JSON.parse(data);
+            assert.equal(json.task, 
+                         "foo bar", 
+                         'Expected: foo bar Actual: ' + json.task);
+          });
+          done();
+        })
+      })
     })
   })
 
