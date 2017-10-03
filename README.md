@@ -21,4 +21,4 @@ Tests are written with [Mocha][4]. Run tests locally with
 [1]: http://nodejs.org/
 [2]: http://expressjs.com/
 [3]: http://mongoosejs.com/
-[4]: http://visionmedia.github.com/mocha/
+[4]: https://mochajs.org/
